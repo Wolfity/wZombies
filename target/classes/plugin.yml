@@ -1,0 +1,9 @@
+name: Zombies
+main: me.wolf.zombies.ZombiePlugin
+version: 1.0.0
+description: Zombies Minigame
+author: ${project.author}
+api-version: 1.13
+
+
+
