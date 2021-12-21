@@ -48,14 +48,14 @@ public class ZombieCommand extends BaseCommand {
             } else if (args.length == 2) {
                 final String arenaName = args[1];
                 if (args[0].equalsIgnoreCase("createarena")) {
-                    plugin.getArenas().forEach(arena -> {
-                        if(!arena.getName().equalsIgnoreCase(arenaName)) {
-                            tell("&aCreating arena world...");
-                            plugin.getArenaManager().createArena(arenaName);
-                            player.teleport(new Location(Bukkit.getWorld(arenaName), 0, 80, 0));
-                            tell(Messages.ARENA_CREATED.replace("{arena}", arenaName));
-                        } else tell(Messages.ARENA_EXISTS);
-                    });
+                    System.out.println("A");
+                    if(plugin.getArenaManager().getArena(arenaName) == null) {
+                        System.out.println("B");
+                        tell("&aCreating arena world...");
+                        plugin.getArenaManager().createArena(arenaName);
+                        player.teleport(new Location(Bukkit.getWorld(arenaName), 0, 80, 0));
+                        tell(Messages.ARENA_CREATED.replace("{arena}", arenaName));
+                    } else tell(Messages.ARENA_EXISTS);
                 } else if (args[0].equalsIgnoreCase("deletearena")) {
                     if (plugin.getArenaManager().getArena(arenaName) != null) {
                         plugin.getArenaManager().deleteArena(arenaName);
@@ -71,7 +71,7 @@ public class ZombieCommand extends BaseCommand {
                     deleteMonsterSpawn(player, plugin.getArenaManager().getArena(arenaName));
                 } else if (args[0].equalsIgnoreCase("setperknpc")) {
                     setPerkNPC(player, arenaName);
-                } else if(args[0].equalsIgnoreCase("removeperknpc")) {
+                } else if (args[0].equalsIgnoreCase("removeperknpc")) {
                     removePerkNPC(player, plugin.getArenaManager().getArena(arenaName));
                 } else if (args[0].equalsIgnoreCase("forcestart")) {
                     plugin.getGameManager().setGameState(GameState.LOBBY_COUNTDOWN, plugin.getArenaManager().getArena(arenaName));
@@ -154,6 +154,7 @@ public class ZombieCommand extends BaseCommand {
             tell(Messages.CAN_NOT_MODIFY);
         }
     }
+
     // method that takes care of deleting spawnpoints
     private void deleteMonsterSpawn(final Player player, final Arena arena) {
         if (!arena.getMonsterSpawns().contains(CustomLocation.fromBukkitLocation(player.getLocation()))) {

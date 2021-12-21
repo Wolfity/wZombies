@@ -5,6 +5,7 @@ me\wolf\zombies\arena\ArenaManager.class
 me\wolf\zombies\scoreboard\Scoreboards.class
 me\wolf\zombies\arena\ArenaState.class
 me\wolf\zombies\listeners\ItemDrop.class
+me\wolf\zombies\perks\PerkManager.class
 me\wolf\zombies\listeners\PlayerQuit.class
 me\wolf\zombies\files\YamlConfig.class
 me\wolf\zombies\game\GameListeners.class
@@ -16,6 +17,7 @@ me\wolf\zombies\game\GameState.class
 me\wolf\zombies\utils\CustomLocation.class
 me\wolf\zombies\files\FileManager.class
 me\wolf\zombies\game\GameManager.class
+me\wolf\zombies\gun\GunManager.class
 me\wolf\zombies\listeners\EntityDamage.class
 me\wolf\zombies\ZombiePlugin.class
 me\wolf\zombies\player\ZombiePlayer.class

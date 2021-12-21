@@ -55,7 +55,7 @@ public class GameListeners implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR) return;
         final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
 
-        zombiePlayer.getGunList().forEach(gun -> {
+        plugin.getGunManager().getGuns().forEach(gun -> {
             if (player.getInventory().getItemInMainHand().getType() == gun.getIcon()) {
                 launchBullet(player, gun);
             }
@@ -111,7 +111,7 @@ public class GameListeners implements Listener {
             final int price = plugin.getConfig().getInt("ammo-refill-price"); //refilling amo
             if (canAfford(zombiePlayer, price)) {
                 zombiePlayer.removeCoins(price);
-                zombiePlayer.getGunList().forEach(gun -> {
+                plugin.getGunManager().getGuns().forEach(gun -> {
                     if (player.getInventory().getItemInMainHand().getType() != gun.getIcon()) return;
                     gun.setAmmo(gun.getDefaultAmount());
                 });
@@ -119,7 +119,7 @@ public class GameListeners implements Listener {
             // dealing with upgrading the gun
         } else if (sign.getLine(0).equalsIgnoreCase(Utils.colorize("&b[Upgrade]"))) {
             final int price = plugin.getConfig().getInt("gun-upgrade-price");
-            zombiePlayer.getGunList().forEach(gun -> {
+            plugin.getGunManager().getGuns().forEach(gun -> {
                 if (gun.getLevel() < gun.getMaxLevel()) {
                     if (canAfford(zombiePlayer, price)) {
                         if (player.getInventory().getItemInMainHand().getType() != gun.getIcon()) return;
@@ -132,7 +132,7 @@ public class GameListeners implements Listener {
 
         }
         // the part that takes care of buying the gun, checking if the price can be afforded, etc
-        zombiePlayer.getGunList().forEach(gun -> {
+       plugin.getGunManager().getGuns().forEach(gun -> {
             if (sign.getLine(0).equalsIgnoreCase(Utils.colorize(gun.getName()))) {
                 if (player.getInventory().contains(gun.getIcon())) {
                     player.sendMessage(Messages.ALREADY_HAVE_WEAPON);
@@ -191,7 +191,7 @@ public class GameListeners implements Listener {
                 final ZombiePlayer zombieShooter = plugin.getZombiePlayers().get(shooter.getUniqueId());
                 final Arena arena = plugin.getArenaManager().getArenaByPlayer(zombieShooter);
                 shooter.playSound(shooter.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.3f, 0.3f);
-                zombieShooter.getGunList().forEach(gun -> {
+                plugin.getGunManager().getGuns().forEach(gun -> {
                     if (event.getDamager().getCustomName().equalsIgnoreCase(String.valueOf(gun.getAmmoID()))) { // checking if the snowball has the entity ID from a gun
                         entityMonster.setHealth((float) (entityMonster.getHealth() - gun.getDamage())); // subtracting the monster's HP with the gun ammo
                         ((CraftMonster) event.getEntity()).setMaximumNoDamageTicks(gun.getFireRate()); //setting the hit delay according to the fire rate
@@ -221,7 +221,7 @@ public class GameListeners implements Listener {
         if (!plugin.getZombiePlayers().containsKey(player.getUniqueId())) return;
         final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
         if (event.getView().getTitle().equalsIgnoreCase(Utils.colorize("&cPerk Shop"))) {
-            zombiePlayer.getPerksList().forEach(perk -> {
+            plugin.getPerkManager().getPerks().forEach(perk -> {
                 if (event.getCurrentItem().getType() != perk.getIcon()) return;
                 if (perk.getLevel() < perk.getMaxLevel()) {
                     if (canAfford(zombiePlayer, perk.getPrice())) {
@@ -285,17 +285,16 @@ public class GameListeners implements Listener {
 
     // opening the perk GUI
     private void openPerkGUI(final Player player) {
-        final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
         final Inventory inventory = Bukkit.createInventory(null, 9, Utils.colorize("&cPerk Shop"));
 
-        zombiePlayer.getPerksList().stream().filter(Perk::isEnabled).forEach(perk -> inventory.addItem(Utils.createItem(perk.getIcon(), perk.getName() + "&e(" + perk.getPrice() + ")", "&bLevel &3" + perk.getLevel())));
+        plugin.getPerkManager().getPerks().stream().filter(Perk::isEnabled).forEach(perk -> inventory.addItem(Utils.createItem(perk.getIcon(), perk.getName() + "&e(" + perk.getPrice() + ")", "&bLevel &3" + perk.getLevel())));
 
         player.openInventory(inventory);
     }
 
     // applying the perk to a player.
     private void applyPerk(final ZombiePlayer zombiePlayer, final String identifier) {
-        final Perk perk = zombiePlayer.getPerkByIdentifier(identifier);
+        final Perk perk = plugin.getPerkManager().getPerkByIdentifier(identifier);
         final Player player = Bukkit.getPlayer(zombiePlayer.getUuid());
         switch (identifier) {
             case "Speed":

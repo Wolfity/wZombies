@@ -5,7 +5,6 @@ import me.wolf.zombies.ZombiePlugin;
 import me.wolf.zombies.monsters.ZombieMonster;
 import me.wolf.zombies.player.ZombiePlayer;
 import me.wolf.zombies.utils.CustomLocation;
-import net.minecraft.server.v1_16_R3.EntityMonster;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

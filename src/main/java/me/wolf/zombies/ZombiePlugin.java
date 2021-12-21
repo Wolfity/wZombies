@@ -6,7 +6,9 @@ import me.wolf.zombies.commands.impl.ZombieCommand;
 import me.wolf.zombies.files.FileManager;
 import me.wolf.zombies.game.GameListeners;
 import me.wolf.zombies.game.GameManager;
+import me.wolf.zombies.gun.GunManager;
 import me.wolf.zombies.listeners.*;
+import me.wolf.zombies.perks.PerkManager;
 import me.wolf.zombies.player.ZombiePlayer;
 import me.wolf.zombies.scoreboard.Scoreboards;
 import org.bukkit.Bukkit;
@@ -24,6 +26,8 @@ public class ZombiePlugin extends JavaPlugin {
     private GameManager gameManager;
     private Scoreboards scoreboard;
     private FileManager fileManager;
+    private GunManager gunManager;
+    private PerkManager perkManager;
 
 
     private final Set<Arena> arenas = new HashSet<>();
@@ -78,7 +82,11 @@ public class ZombiePlugin extends JavaPlugin {
         this.arenaManager.loadArenas();
         this.gameManager = new GameManager(this);
         this.scoreboard = new Scoreboards(this);
+        this.gunManager = new GunManager(this);
+        this.perkManager = new PerkManager(this);
 
+        gunManager.initGuns();
+        perkManager.initPerks();
     }
 
     private void registerCommand(final Command command) {
@@ -116,5 +124,13 @@ public class ZombiePlugin extends JavaPlugin {
 
     public FileManager getFileManager() {
         return fileManager;
+    }
+
+    public GunManager getGunManager() {
+        return gunManager;
+    }
+
+    public PerkManager getPerkManager() {
+        return perkManager;
     }
 }

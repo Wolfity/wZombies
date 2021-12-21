@@ -171,7 +171,7 @@ public class GameManager {
             }
             if (arena.getArenaMembers().size() <= arena.getArenaConfig().getInt("max-players")) {
 
-                plugin.getZombiePlayers().put(player.getUniqueId(), new ZombiePlayer(player.getUniqueId(), plugin));
+                plugin.getZombiePlayers().put(player.getUniqueId(), new ZombiePlayer(player.getUniqueId()));
                 final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
                 arena.getArenaMembers().add(zombiePlayer);
 
@@ -286,14 +286,14 @@ public class GameManager {
     private void giveBeginGun(final Arena arena) {
         arena.getArenaMembers().forEach(zombiePlayer -> {
             final Player player = Bukkit.getPlayer(zombiePlayer.getUuid());
-            final Gun pistol = zombiePlayer.getGunByIdentifier("Pistol");
+            final Gun pistol = plugin.getGunManager().getGunByIdentifier("Pistol");
             player.getInventory().addItem(Utils.createItem(pistol.getIcon(), pistol.getName(), 1));
         });
     }
 
     private void updateGuns(final ZombiePlayer zombiePlayer) {
         final Player player = Bukkit.getPlayer(zombiePlayer.getUuid());
-        zombiePlayer.getGunList().forEach(gun -> {
+        plugin.getGunManager().getGuns().forEach(gun -> {
             if (player.getInventory().getItemInMainHand().getType() == gun.getIcon()) {
                 player.setLevel(gun.getAmmoAmount());
             }
@@ -306,14 +306,15 @@ public class GameManager {
             for (BlockState blockState : chunk.getTileEntities()) {
                 if (blockState instanceof Sign) {
                     final Sign sign = (Sign) blockState;
-                    arena.getArenaMembers().forEach(zombiePlayer -> zombiePlayer.getGunList().forEach(gun -> {
+                    plugin.getGunManager().getGuns().forEach(gun -> {
                         if (!sign.getLine(0).equalsIgnoreCase(gun.getIdentifier())) return;
                         sign.setLine(0, Utils.colorize(gun.getName()));
                         sign.setLine(1, Utils.colorize("&c" + gun.getPrice()));
                         sign.setLine(2, Utils.colorize("&bClick To Buy"));
                         sign.update();
                         // setting the lines according to the gun that identifies it.
-                    }));
+                    });
+
                 }
             }
         }
