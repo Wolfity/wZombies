@@ -6,11 +6,11 @@ public class Perk {
 
     private final Material icon;
     private final String identifier, name;
-    private int level;
     private final int maxLevel;
-    private double price;
     private final double priceMultiplier;
     private final boolean enabled;
+    private int level;
+    private double price;
 
 
     public Perk(final Material icon, final String identifier, final String name, final int maxLevel, final double price, final double priceMultiplier, final boolean enabled) {
@@ -57,11 +57,11 @@ public class Perk {
         return price;
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 }

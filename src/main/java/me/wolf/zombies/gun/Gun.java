@@ -7,9 +7,13 @@ import java.util.Objects;
 public class Gun {
 
     private final String identifier, name;
-    private double damage;
     private final Material icon;
-    private final int ammoID, maxLevel, fireRate, defaultAmount, price;
+    private final int ammoID;
+    private final int maxLevel;
+    private int fireRate;
+    private final int defaultAmount;
+    private final int price;
+    private double damage;
     private int ammoAmount, level;
 
     public Gun(final String identifier, final String name, final double damage, final Material icon, final int ammoID, final int ammoAmount, final int defaultAmount, final int fireRate, final int maxLevel, final int price) {
@@ -38,6 +42,10 @@ public class Gun {
         return damage;
     }
 
+    public void setDamage(double damage) {
+        this.damage = damage;
+    }
+
     public Material getIcon() {
         return icon;
     }
@@ -59,7 +67,7 @@ public class Gun {
     }
 
     public void setAmmo(final int amount) {
-        this.ammoAmount = ammoAmount + amount;
+        this.ammoAmount = amount;
     }
 
     public int getDefaultAmount() {
@@ -68,10 +76,6 @@ public class Gun {
 
     public int getFireRate() {
         return fireRate;
-    }
-
-    public void setDamage(double damage) {
-        this.damage = damage;
     }
 
     public void incrementLevel() {
@@ -84,6 +88,14 @@ public class Gun {
 
     public int getMaxLevel() {
         return maxLevel;
+    }
+
+    public void decrementFireRate() {
+        this.fireRate--;
+    }
+
+    public void setFireRate(int fireRate) {
+        this.fireRate = fireRate;
     }
 
     public double getNewDamage() {

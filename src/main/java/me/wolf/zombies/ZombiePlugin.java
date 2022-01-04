@@ -9,7 +9,7 @@ import me.wolf.zombies.game.GameManager;
 import me.wolf.zombies.gun.GunManager;
 import me.wolf.zombies.listeners.*;
 import me.wolf.zombies.perks.PerkManager;
-import me.wolf.zombies.player.ZombiePlayer;
+import me.wolf.zombies.player.PlayerManager;
 import me.wolf.zombies.scoreboard.Scoreboards;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -18,7 +18,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ZombiePlugin extends JavaPlugin {
 
@@ -28,14 +31,10 @@ public class ZombiePlugin extends JavaPlugin {
     private FileManager fileManager;
     private GunManager gunManager;
     private PerkManager perkManager;
-
-
-    private final Set<Arena> arenas = new HashSet<>();
-    private final Map<UUID, ZombiePlayer> zombiePlayers = new HashMap<>();
+    private PlayerManager playerManager;
 
     @Override
     public void onEnable() {
-        final ZombiePlugin plugin = this;
 
         File folder = new File(this.getDataFolder() + "/arenas");
         if (!folder.exists()) {
@@ -48,13 +47,6 @@ public class ZombiePlugin extends JavaPlugin {
 
         getConfig().options().copyDefaults();
         saveDefaultConfig();
-    }
-
-    @Override
-    public void onDisable() {
-        arenaManager.saveArenas();
-
-
     }
 
     private void registerCommands() {
@@ -84,6 +76,7 @@ public class ZombiePlugin extends JavaPlugin {
         this.scoreboard = new Scoreboards(this);
         this.gunManager = new GunManager(this);
         this.perkManager = new PerkManager(this);
+        this.playerManager = new PlayerManager();
 
         gunManager.initGuns();
         perkManager.initPerks();
@@ -114,12 +107,8 @@ public class ZombiePlugin extends JavaPlugin {
         return scoreboard;
     }
 
-    public Set<Arena> getArenas() {
-        return arenas;
-    }
-
-    public Map<UUID, ZombiePlayer> getZombiePlayers() {
-        return zombiePlayers;
+    public PlayerManager getPlayerManager() {
+        return playerManager;
     }
 
     public FileManager getFileManager() {

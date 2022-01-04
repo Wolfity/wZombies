@@ -10,6 +10,7 @@ import org.bukkit.scoreboard.*;
 public class Scoreboards {
 
     private final ZombiePlugin plugin;
+
     public Scoreboards(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
@@ -58,7 +59,8 @@ public class Scoreboards {
         final int maxPlayers = arena.getArenaConfig().getInt("max-players");
         final String name = arena.getName();
         final int currentPlayers = arena.getArenaMembers().size();
-        final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
+        final ZombiePlayer zombiePlayer = plugin.getPlayerManager().getZombiePlayer(player.getUniqueId());
+        if(zombiePlayer == null) return;
 
         final ScoreboardManager scoreboardManager = plugin.getServer().getScoreboardManager();
         Scoreboard scoreboard = scoreboardManager.getNewScoreboard();

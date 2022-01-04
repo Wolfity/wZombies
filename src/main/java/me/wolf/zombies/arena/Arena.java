@@ -18,62 +18,33 @@ public class Arena {
     private final ZombiePlugin plugin;
 
     private final String name;
-    private ArenaState arenaState = ArenaState.READY;
-    private CustomLocation waitingRoomLoc;
-    private FileConfiguration arenaConfig;
-    private CustomLocation spawnLocation; // I will temporarily assign the arena spawn to the player's spawn point so it won't throw a null
     private final Set<ZombiePlayer> arenaMembers = new HashSet<>();
     private final List<CustomLocation> monsterSpawns = new ArrayList<>();
     private final List<ZombieMonster> arenaMonsterList = new ArrayList<>();
     private final List<CustomLocation> perkShopNPCs = new ArrayList<>();
+    private  int minPlayers;
+    private  int maxPlayers;
+    private File arenaConfigFile;
+    private ArenaState arenaState = ArenaState.READY;
+    private CustomLocation waitingRoomLoc;
+    private FileConfiguration arenaConfig;
+    private CustomLocation spawnLocation; // I will temporarily assign the arena spawn to the player's spawn point so it won't throw a null
     private int lobbyCountdown;
-    private final int minPlayer;
-    private final int maxPlayers;
     private int round;
-
-    public File arenaConfigFile;
 
     protected Arena(final String name, final int lobbyCountdown, final int minPlayer, final int maxPlayers, final ZombiePlugin plugin) {
         this.plugin = plugin;
         this.name = name;
         createConfig(name);
         this.lobbyCountdown = lobbyCountdown;
-        this.minPlayer = minPlayer;
+        this.minPlayers = minPlayer;
         this.maxPlayers = maxPlayers;
         this.round = 1;
 
     }
 
-    public void saveArena() {
 
-        try {
-            arenaConfig.set("LobbySpawn", waitingRoomLoc.serialize());
-            arenaConfig.set("SpawnLocation", spawnLocation.serialize());
-
-            int i = 1;
-            for (final CustomLocation location : plugin.getArenaManager().getArena(name).getMonsterSpawns()) {
-                arenaConfig.set("monster-spawn-locations." + i, location.serialize());
-                i++;
-            }
-            int j = 1;
-            for(final CustomLocation location : plugin.getArenaManager().getArena(name).getPerkShopNPCs()) {
-                arenaConfig.set("perk-npc-locations." + j, location.serialize());
-                j++;
-            }
-
-        } catch (final NullPointerException ignored) {
-
-        }
-
-
-        try {
-            arenaConfig.save(arenaConfigFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void createConfig(final String cfgName) {
+    public void createConfig(final String cfgName) {
         arenaConfigFile = new File(plugin.getDataFolder() + "/arenas", cfgName.toLowerCase() + ".yml");
         arenaConfig = new YamlConfiguration();
         try {
@@ -115,7 +86,7 @@ public class Arena {
     }
 
     public void addShopNPC(final CustomLocation location) {
-        if(!perkShopNPCs.contains(location)) {
+        if (!perkShopNPCs.contains(location)) {
             perkShopNPCs.add(location);
         }
     }
@@ -145,8 +116,16 @@ public class Arena {
         return arenaState;
     }
 
+    public void setArenaState(final ArenaState arenaState) {
+        this.arenaState = arenaState;
+    }
+
     public CustomLocation getWaitingRoomLoc() {
         return waitingRoomLoc;
+    }
+
+    public void setWaitingRoomLoc(final CustomLocation waitingRoomLoc) {
+        this.waitingRoomLoc = waitingRoomLoc;
     }
 
     public FileConfiguration getArenaConfig() {
@@ -155,6 +134,10 @@ public class Arena {
 
     public CustomLocation getSpawnLocation() {
         return spawnLocation;
+    }
+
+    public void setSpawnLocation(final CustomLocation customLocation) {
+        this.spawnLocation = customLocation;
     }
 
     public Set<ZombiePlayer> getArenaMembers() {
@@ -169,20 +152,12 @@ public class Arena {
         return arenaConfigFile;
     }
 
-    public void setWaitingRoomLoc(final CustomLocation waitingRoomLoc) {
-        this.waitingRoomLoc = waitingRoomLoc;
-    }
-
-    public void setSpawnLocation(final CustomLocation customLocation) {
-        this.spawnLocation = customLocation;
-    }
-
-    public void setArenaState(final ArenaState arenaState) {
-        this.arenaState = arenaState;
-    }
-
     public int getRound() {
         return round;
+    }
+
+    public void setRound(final int round) {
+        this.round = round;
     }
 
     public List<CustomLocation> getMonsterSpawns() {
@@ -195,19 +170,36 @@ public class Arena {
         }
     }
 
-    public void removeMonsterSpawn(final CustomLocation location) {
-        monsterSpawns.remove(location);
+    public void setLobbyCountdown(int lobbyCountdown) {
+        this.lobbyCountdown = lobbyCountdown;
     }
 
-    public void setRound(final int round) {
-        this.round = round;
+    public int getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    public int getMinPlayer() {
+        return minPlayers;
+    }
+
+    public void setMinPlayer(int minPlayer) {
+        this.minPlayers = minPlayer;
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
+    }
+
+    public void removeMonsterSpawn(final CustomLocation location) {
+        monsterSpawns.remove(location);
     }
 
     public List<ZombieMonster> getArenaMonsterList() {
         return arenaMonsterList;
     }
+
     public void addArenaMonster(final ZombieMonster zombieMonster) {
-        if(!arenaMonsterList.contains(zombieMonster)) {
+        if (!arenaMonsterList.contains(zombieMonster)) {
             arenaMonsterList.add(zombieMonster);
         }
     }

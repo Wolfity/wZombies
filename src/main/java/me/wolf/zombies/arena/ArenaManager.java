@@ -8,12 +8,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftZombie;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Villager;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @SuppressWarnings("ConstantConditions")
 public class ArenaManager {
@@ -23,15 +26,18 @@ public class ArenaManager {
     public ArenaManager(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
-
+    private final Set<Arena> arenas = new HashSet<>();
 
     public Arena createArena(final String arenaName) {
-        for (final Arena arena : plugin.getArenas())
+        for (final Arena arena : arenas)
             if (arena.getName().equalsIgnoreCase(arenaName))
                 return getArena(arenaName);
 
-        final Arena arena = new Arena(arenaName, 10, 2, 4, plugin);
-        plugin.getArenas().add(arena);
+        final Arena arena = new Arena(arenaName, 10, 1, 4, plugin);
+        arena.createConfig(arenaName);
+
+
+        this.arenas.add(arena);
         final World arenaWorld = Bukkit.createWorld(new WorldCreator(arenaName));
         arenaWorld.setAutoSave(false);
 
@@ -43,7 +49,7 @@ public class ArenaManager {
         if (arena == null) return;
 
         arena.getArenaConfigFile().delete();
-        plugin.getArenas().remove(arena);
+        this.arenas.remove(arena);
 
         Bukkit.getWorld(name).getPlayers().stream().filter(Objects::nonNull).forEach(player -> player.teleport((Location) plugin.getConfig().get("WorldSpawn")));
         final World world = Bukkit.getWorld(name);
@@ -55,7 +61,7 @@ public class ArenaManager {
 
     // get an arena by passing in it's name
     public Arena getArena(final String name) {
-        for (final Arena arena : plugin.getArenas())
+        for (final Arena arena : arenas)
             if (arena.getName().equalsIgnoreCase(name))
                 return arena;
 
@@ -64,7 +70,7 @@ public class ArenaManager {
 
     // getting an arena by passing in a player, looping over all arenas to see if the player is in there
     public Arena getArenaByPlayer(final ZombiePlayer zombiePlayer) {
-        for (final Arena arena : plugin.getArenas()) {
+        for (final Arena arena : arenas) {
             if (arena.getArenaMembers().contains(zombiePlayer)) {
                 return arena;
             }
@@ -111,9 +117,26 @@ public class ArenaManager {
 
         for (final File file : Objects.requireNonNull(folder.listFiles())) {
             final Arena arena = createArena(file.getName().replace(".yml", ""));
+            final FileConfiguration cfg = arena.getArenaConfig();
+            arena.setWaitingRoomLoc(CustomLocation.fromBukkitLocation(new Location(
+                    Bukkit.getWorld(cfg.getString("LobbySpawn.world")),
+                    cfg.getDouble("LobbySpawn.x"),
+                    cfg.getDouble("LobbySpawn.y"),
+                    cfg.getDouble("LobbySpawn.z"),
+                    (float) cfg.getDouble("LobbySpawn.pitch"),
+                    (float) cfg.getDouble("LobbySpawn.yaw"))));
 
-            arena.setWaitingRoomLoc(CustomLocation.deserialize(arena.getArenaConfig().getString("LobbySpawn")));
-            arena.setSpawnLocation(CustomLocation.deserialize(arena.getArenaConfig().getString("SpawnLocation")));
+            arena.setSpawnLocation(CustomLocation.fromBukkitLocation(new Location(
+                    Bukkit.getWorld(cfg.getString("SpawnLocation.world")),
+                    cfg.getDouble("SpawnLocation.x"),
+                    cfg.getDouble("SpawnLocation.y"),
+                    cfg.getDouble("SpawnLocation.z"),
+                    (float) cfg.getDouble("SpawnLocation.pitch"),
+                    (float) cfg.getDouble("SpawnLocation.yaw"))));
+
+            final int minPlayers = cfg.getInt("min-players");
+            final int maxPlayers = cfg.getInt("max-players");
+            final int lobbyCountdown = cfg.getInt("lobby-countdown");
 
             for (final String key : arena.getArenaConfig().getConfigurationSection("monster-spawn-locations").getKeys(false)) {
                 arena.addMonsterSpawn(CustomLocation.deserialize(arena.getArenaConfig().getString("monster-spawn-locations." + key)));
@@ -123,16 +146,15 @@ public class ArenaManager {
                 arena.addShopNPC(CustomLocation.deserialize(arena.getArenaConfig().getString("perk-npc-locations." + key)));
             }
 
+            arena.setMinPlayer(minPlayers);
+            arena.setMaxPlayers(maxPlayers);
+            arena.setLobbyCountdown(lobbyCountdown);
             Bukkit.getLogger().info("&aLoaded arena &e" + arena.getName());
 
+
         }
     }
 
-    public void saveArenas() {
-        for (final Arena arena : plugin.getArenas()) {
-            arena.saveArena();
-        }
-    }
 
     private void deleteMap(final File dir) {
         final File[] files = dir.listFiles();

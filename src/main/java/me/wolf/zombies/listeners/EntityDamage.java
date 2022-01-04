@@ -10,17 +10,18 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 public class EntityDamage implements Listener {
 
     private final ZombiePlugin plugin;
+
     public EntityDamage(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
     public void onPlayerLobbyDamage(final EntityDamageByEntityEvent event) {
-        if(!(event.getEntity() instanceof Player && event.getDamager() instanceof Player)) return;
-        final Player player = (Player) event.getEntity();
-        if(!plugin.getZombiePlayers().containsKey(player.getUniqueId())) return;
-        final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
-        event.setCancelled(true);
-     }
+        if (!(event.getEntity() instanceof Player && event.getDamager() instanceof Player)) return;
+
+        event.setCancelled(plugin.getPlayerManager().getZombiePlayer(event.getEntity().getUniqueId()) != null);
+
+
+    }
 
 }

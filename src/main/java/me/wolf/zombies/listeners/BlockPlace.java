@@ -9,16 +9,13 @@ import org.bukkit.event.block.BlockPlaceEvent;
 public class BlockPlace implements Listener {
 
     private final ZombiePlugin plugin;
+
     public BlockPlace(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
     public void onPlace(final BlockPlaceEvent event) {
-        final Player player = event.getPlayer();
-        if(!plugin.getZombiePlayers().containsKey(player.getUniqueId())) return;
-        event.setCancelled(true);
+        event.setCancelled(plugin.getPlayerManager().getZombiePlayer(event.getPlayer().getUniqueId()) != null);
     }
-
-
 }

@@ -9,15 +9,14 @@ import org.bukkit.event.block.BlockBreakEvent;
 public class BlockBreak implements Listener {
 
     private final ZombiePlugin plugin;
+
     public BlockBreak(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
     public void onBreak(final BlockBreakEvent event) {
-        final Player player = event.getPlayer();
-        if(!plugin.getZombiePlayers().containsKey(player.getUniqueId())) return;
-        event.setCancelled(true);
+        event.setCancelled(plugin.getPlayerManager().getZombiePlayer(event.getPlayer().getUniqueId()) != null);
     }
 
 }

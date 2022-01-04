@@ -28,6 +28,7 @@ public class ZombieMonster extends EntityZombie {
 
 
     }
+
     public void setMaxHealth(final float amount) {
         this.craftAttributes.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(amount);
         this.setHealth(amount);

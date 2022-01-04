@@ -29,12 +29,11 @@ import java.util.Random;
 public class GameManager {
 
     private final ZombiePlugin plugin;
+    private GameState gameState;
 
     public GameManager(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
-
-    private GameState gameState;
 
     public void setGameState(final GameState gameState, final Arena arena) {
         this.gameState = gameState;
@@ -82,9 +81,8 @@ public class GameManager {
                     this.cancel();
                     arena.resetLobbyCountdown();
                     arena.getArenaMembers().forEach(zombiePlayer -> {
-                        final Player player = Bukkit.getPlayer(zombiePlayer.getUuid());
-                        player.sendMessage(Messages.GAME_STARTED);
-                        plugin.getScoreboard().gameScoreboard(player, arena);
+                        zombiePlayer.sendMessage(Messages.GAME_STARTED);
+                        plugin.getScoreboard().gameScoreboard(zombiePlayer.getBukkitPlayer(), arena);
                     });
                     setGameState(GameState.ACTIVE, arena);
                 }
@@ -120,13 +118,15 @@ public class GameManager {
             player.getInventory().clear();
             teleportToWorld(arena);
 
+            // setting gamemode, clearing inventories
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);
             player.setGameMode(GameMode.SURVIVAL);
 
-            plugin.getZombiePlayers().remove(player.getUniqueId());
+            plugin.getPlayerManager().removeZombiePlayer(player.getUniqueId());
 
             player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            // clearing effects
             for (final PotionEffect activeEffect : player.getActivePotionEffects()) {
                 player.removePotionEffect(activeEffect.getType());
             }
@@ -143,10 +143,10 @@ public class GameManager {
 
     private void teleportToWorld(final Arena arena) {
         arena.getArenaMembers().forEach(zombiePlayer -> {
-            final Player player = Bukkit.getPlayer(zombiePlayer.getUuid());
+
             final Location worldLoc = (Location) plugin.getConfig().get("WorldSpawn");
-            player.teleport(worldLoc);
-            plugin.getZombiePlayers().remove(player.getUniqueId());
+            zombiePlayer.teleport(worldLoc);
+            plugin.getPlayerManager().removeZombiePlayer(zombiePlayer.getUuid());
         });
     }
 
@@ -161,20 +161,22 @@ public class GameManager {
 
     // Adds a new player to a specific arena, creates the Custom Player object.
     public void addPlayer(final Player player, final Arena arena) {
-
-        if (plugin.getArenaManager().isGameActive(arena)) {
+        if (arena.getArenaMembers().contains(plugin.getPlayerManager().getZombiePlayer(player.getUniqueId()))) {
+             player.sendMessage(Messages.ALREADY_IN_ARENA);
+        } else if (plugin.getArenaManager().isGameActive(arena)) {
             player.sendMessage(Messages.GAME_IN_PROGRESS);
-        }
-        if (!arena.getArenaMembers().contains(plugin.getZombiePlayers().get(player.getUniqueId()))) {
+        } else {
             if (arena.getArenaMembers().isEmpty()) {
                 setGameState(GameState.RECRUITING, arena);
             }
-            if (arena.getArenaMembers().size() <= arena.getArenaConfig().getInt("max-players")) {
 
-                plugin.getZombiePlayers().put(player.getUniqueId(), new ZombiePlayer(player.getUniqueId()));
-                final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
+            if (arena.getArenaMembers().size() <= arena.getMaxPlayers()) {
+                plugin.getPlayerManager().addZombiePlayer(player.getUniqueId());
+                final ZombiePlayer zombiePlayer = plugin.getPlayerManager().getZombiePlayer(player.getUniqueId());
+                zombiePlayer.setGuns(plugin.getGunManager().getGuns()); // give the player his guns
                 arena.getArenaMembers().add(zombiePlayer);
 
+                // teleporting + changing their level, health and food
                 plugin.getScoreboard().lobbyScoreboard(player, arena);
                 teleportToLobby(player, arena);
                 player.getInventory().clear();
@@ -183,40 +185,45 @@ public class GameManager {
                 player.setHealth(20);
 
                 arena.getArenaMembers().stream().filter(Objects::nonNull).forEach(arenaMembers -> {
-                    final Player arenaPlayers = Bukkit.getPlayer(arenaMembers.getUuid());
-                    plugin.getScoreboard().lobbyScoreboard(arenaPlayers, arena);
-                    arenaPlayers.sendMessage(Messages.PLAYER_JOINED_GAME.replace("{player}", player.getDisplayName()));
+                    plugin.getScoreboard().lobbyScoreboard(arenaMembers.getBukkitPlayer(), arena);
+                    arenaMembers.sendMessage(Messages.PLAYER_JOINED_GAME.replace("{player}", player.getDisplayName()));
                 });
                 enoughPlayers(arena);
                 player.sendMessage(Messages.JOINED_ARENA.replace("{arena}", arena.getName()));
+
             } else player.sendMessage(Messages.ARENA_IS_FULL);
-        } else player.sendMessage(Messages.ALREADY_IN_ARENA);
+        }
     }
+
 
     // remove a player from the game, teleport them, clear the custom player object
     public void removePlayer(final Player player) {
-        for (final Arena arena : plugin.getArenas()) {
-            if (arena.getArenaMembers().contains(plugin.getZombiePlayers().get(player.getUniqueId()))) {
-                if (plugin.getConfig().get("WorldSpawn") == null) {
-                    player.sendMessage(Utils.colorize("&cSomething went wrong, no world spawn set!"));
-                }
+        final ZombiePlayer zombiePlayer = plugin.getPlayerManager().getZombiePlayer(player.getUniqueId());
+        if (zombiePlayer == null) return;
+        final Arena arena = plugin.getArenaManager().getArenaByPlayer(zombiePlayer);
+        if (arena == null) return;
 
-                final ZombiePlayer zombiePlayer = plugin.getZombiePlayers().get(player.getUniqueId());
-                arena.getArenaMembers().remove(zombiePlayer);
-                plugin.getZombiePlayers().remove(player.getUniqueId());
+        if (plugin.getConfig().get("WorldSpawn") == null) {
+            player.sendMessage(Utils.colorize("&cSomething went wrong, no world spawn set!"));
+        } else {
 
-                player.teleport((Location) plugin.getConfig().get("WorldSpawn"));
-                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-                player.getInventory().clear();
-                player.sendMessage(Messages.LEFT_ARENA.replace("{arena}", arena.getName()));
-                player.getInventory().clear();
-                leaveGameCheck(arena);
-                arena.getArenaMembers()
-                        .stream().filter(Objects::nonNull)
-                        .forEach(arenaMember -> Bukkit.getPlayer(arenaMember.getUuid()).sendMessage(Messages.PLAYER_LEFT_GAME.replace("{player}", player.getDisplayName())));
-            } else player.sendMessage(Messages.LEFT_ARENA);
+            arena.getArenaMembers().remove(zombiePlayer);
+            plugin.getPlayerManager().removeZombiePlayer(player.getUniqueId());
+
+            player.teleport((Location) plugin.getConfig().get("WorldSpawn"));
+            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            player.getInventory().clear();
+            player.sendMessage(Messages.LEFT_ARENA.replace("{arena}", arena.getName()));
+            player.getInventory().clear();
+            leaveGameCheck(arena);
+            player.sendMessage(Messages.LEFT_ARENA);
+            arena.getArenaMembers()
+                    .stream().filter(Objects::nonNull)
+                    .forEach(arenaMember -> Bukkit.getPlayer(arenaMember.getUuid()).sendMessage(Messages.PLAYER_LEFT_GAME.replace("{player}", player.getDisplayName())));
+
         }
     }
+
 
     // only resetting if there is no player left ingame
     private void leaveGameCheck(final Arena arena) {
@@ -235,9 +242,8 @@ public class GameManager {
 
     // message that will be shown at the end of the game
     private void sendGameEndNotification(final Arena arena) {
-        arena.getArenaMembers().stream().filter(Objects::nonNull).forEach(tntPlayer -> {
-            final Player player = Bukkit.getPlayer(tntPlayer.getUuid());
-            player.sendMessage(Messages.GAME_ENDED.replace("{round}", String.valueOf(arena.getRound())));
+        arena.getArenaMembers().stream().filter(Objects::nonNull).forEach(zombiePlayer -> {
+            zombiePlayer.sendMessage(Messages.GAME_ENDED.replace("{round}", String.valueOf(arena.getRound())));
         });
     }
 
@@ -247,11 +253,9 @@ public class GameManager {
             @Override
             public void run() {
                 if (gameState == GameState.RECRUITING) {
-                    if (arena.getArenaMembers().size() >= arena.getArenaConfig().getInt("min-players")) {
+                    if (arena.getArenaMembers().size() >= arena.getMinPlayer()) {
                         setGameState(GameState.LOBBY_COUNTDOWN, arena);
-                    } else {
-                        this.cancel();
-                    }
+                    } else this.cancel();
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L);

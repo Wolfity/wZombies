@@ -2,6 +2,7 @@ package me.wolf.zombies.files;
 
 import me.wolf.zombies.ZombiePlugin;
 import me.wolf.zombies.utils.Utils;
+import org.bukkit.Bukkit;
 
 public class FileManager {
 
@@ -12,7 +13,7 @@ public class FileManager {
             gunsConfig = new YamlConfig("guns.yml", plugin);
             perksConfig = new YamlConfig("perks.yml", plugin);
         } catch (final Exception e) {
-            System.out.println(Utils.colorize("&4Something went wrong while loading the yml files"));
+            Bukkit.getLogger().info(Utils.colorize("&4Something went wrong while loading the yml files"));
         }
 
     }

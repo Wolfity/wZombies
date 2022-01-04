@@ -9,6 +9,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class PlayerQuit implements Listener {
 
     private final ZombiePlugin plugin;
+
     public PlayerQuit(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
@@ -16,10 +17,8 @@ public class PlayerQuit implements Listener {
     @EventHandler
     public void onQuit(final PlayerQuitEvent event) {
         final Player player = event.getPlayer();
-
-        if (plugin.getZombiePlayers().containsKey(player.getUniqueId())) {
-            plugin.getGameManager().removePlayer(player);
-        }
+        if (plugin.getPlayerManager().getZombiePlayer(player.getUniqueId()) == null) return;
+        plugin.getGameManager().removePlayer(player);
     }
 
 }

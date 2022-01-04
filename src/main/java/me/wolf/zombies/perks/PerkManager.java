@@ -11,16 +11,15 @@ import java.util.Set;
 public class PerkManager {
 
     private final ZombiePlugin plugin;
+    private final Set<Perk> perks = new HashSet<>();
+
     public PerkManager(final ZombiePlugin plugin) {
         this.plugin = plugin;
     }
 
-    private final Set<Perk> perks = new HashSet<>();
-
-
     public void initPerks() {
         final FileConfiguration perksCfg = plugin.getFileManager().getPerksConfig().getConfig();
-        for(final String perk : perksCfg.getConfigurationSection("perks").getKeys(false)) {
+        for (final String perk : perksCfg.getConfigurationSection("perks").getKeys(false)) {
             final String name = perksCfg.getString(Utils.colorize("perks." + perk + ".name"));
             final String identifier = perksCfg.getString("perks." + perk + ".identifier");
             final int maxLevel = perksCfg.getInt("perks." + perk + ".max-level");
@@ -36,8 +35,8 @@ public class PerkManager {
 
     // get a perk by its name
     public Perk getPerkByIdentifier(final String identifier) {
-        for(final Perk perk : perks) {
-            if(perk.getIdentifier().equalsIgnoreCase(identifier)) {
+        for (final Perk perk : perks) {
+            if (perk.getIdentifier().equalsIgnoreCase(identifier)) {
                 return perk;
             }
         }

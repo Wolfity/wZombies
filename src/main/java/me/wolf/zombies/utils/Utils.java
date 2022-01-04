@@ -11,10 +11,12 @@ import java.util.stream.Collectors;
 
 public final class Utils {
 
+    private Utils() {
+    }
+
     public static String colorize(final String input) {
         return input == null ? "Null value" : ChatColor.translateAlternateColorCodes('&', input);
     }
-
 
     public static String[] colorize(String... messages) {
         final String[] colorized = new String[messages.length];
@@ -41,7 +43,7 @@ public final class Utils {
 
     public static ItemStack createItem(final Material material, final String name, final String lore) {
 
-        final  ItemStack is = new ItemStack(material);
+        final ItemStack is = new ItemStack(material);
         final ItemMeta meta = is.getItemMeta();
         assert meta != null;
         meta.setDisplayName(Utils.colorize(name));
@@ -51,7 +53,13 @@ public final class Utils {
         return is;
     }
 
-    private Utils() {
-    }
+    public static ItemStack createItem(final Material icon,final String name) {
+        final ItemStack is = new ItemStack(icon);
+        final ItemMeta itemMeta = is.getItemMeta();
 
+        itemMeta.setDisplayName(colorize(name));
+        is.setItemMeta(itemMeta);
+
+        return is;
+    }
 }
